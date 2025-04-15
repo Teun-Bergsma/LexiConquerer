@@ -1,35 +1,66 @@
 import serial
 import time
+import threading
 
-# Open serial port (adjust to your COM port or /dev/tty)
-ser = serial.Serial('COM3', 115200)  # or '/dev/ttyUSB0' on Linux
-time.sleep(2)  # Wait for GRBL to initialize
+# Set your serial port and baud rate here
+SERIAL_PORT = '/dev/tty.usbmodem14201'  # <-- Replace with your actual port!
+BAUD_RATE = 115200
 
-# Wake up GRBL
-ser.write(b"\r\n\r\n")
-time.sleep(2)
-ser.flushInput()
+# Define GRBL max travel values (match your $130, $131, $132 settings)
+MAX_X = 110  # 395 mm PHYSICAL LIMIT 
+MAX_Y = 120  # 420 mm PHYSICAL LIMIT
+MAX_Z = 50   # mm
 
-def send_gcode(cmd):
-    print(f"Sending: {cmd}")
-    ser.write((cmd + '\n').encode())
-    grbl_out = ser.readline().decode().strip()
-    print(f"Response: {grbl_out}")
-    return grbl_out
+def send_gcode(ser, command):
+    print(f"> {command}")
+    ser.write((command + '\n').encode())
+    time.sleep(0.1)
+    while ser.in_waiting:
+        response = ser.readline().decode().strip()
+        if response:
+            print(response)
 
-# Set to relative positioning
-send_gcode("G91")
+def get_position_loop(ser, stop_flag):
+    while not stop_flag.is_set():
+        ser.write(b'?\n')
+        time.sleep(0.1)
+        while ser.in_waiting:
+            response = ser.readline().decode().strip()
+            if response.startswith('<'):
+                print(f"[POS] {response}")
+        time.sleep(1)
 
-# Move to position X=20, Y=30
-send_gcode("G1 X20 Y30 F500")  # F500 = feed rate
+def main():
+    with serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1) as ser:
+        time.sleep(2)
+        ser.write(b"\r\n\r\n")  # Wake up GRBL
+        time.sleep(2)
+        ser.flushInput()
 
-# Lower the arm (Z down = 'click')
-send_gcode("G1 Z-5 F100")
+        stop_flag = threading.Event()
+        thread = threading.Thread(target=get_position_loop, args=(ser, stop_flag))
+        thread.start()
 
-# Raise the arm
-send_gcode("G1 Z5 F100")
+        try:
+            send_gcode(ser, "G90")         # Absolute positioning
+            send_gcode(ser, "F1000")       # Feedrate (mm/min)
 
-# Optionally move back
-send_gcode("G1 X-20 Y-30 F500")
+            # Go to X max (no homing, just move directly to max X)
+            # send_gcode(ser, f"G0 X{MAX_X}")
+            # time.sleep(30)
 
-ser.close()
+            # Then Y max (no homing, just move directly to max Y)
+            send_gcode(ser, f"G0 Y{MAX_Y}")
+            time.sleep(30)
+
+            # Optionally: return to origin (no homing, just set positions)
+            send_gcode(ser, "G0 X0 Y0")
+            time.sleep(30)
+
+        finally:
+            stop_flag.set()
+            thread.join()
+            print("Done!")
+
+if __name__ == "__main__":
+    main()
