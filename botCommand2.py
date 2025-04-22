@@ -51,22 +51,33 @@ def main():
         try:
             send_gcode(ser, "G90")         # Absolute positioning
             send_gcode(ser, "F1000")       # Feedrate (mm/min)
-
+            
+            send_gcode(ser, f"G0 Z-1")
+            time.sleep(5)
             # Go to X max (no homing, just move directly to max X)
-            send_gcode(ser, f"G0 Z0.3")
-            time.sleep(3)
+            send_gcode(ser, f"G0 Z-0.4")
+            time.sleep(0.2)
 
-            send_gcode(ser, f"G0 X{Range_X} Y{Range_Y}")
-            time.sleep(10)
+            send_gcode(ser, f"G0 Z-1")
+            time.sleep(1)
+
+            # send_gcode(ser, f"G0 Z-0.4")
+            # time.sleep(0.5)
+
+            # send_gcode(ser, f"G0 Z-0.4")
+            # time.sleep(0.5)
+
+            # send_gcode(ser, f"G0 X{Range_X} Y{Range_Y}")
+            # time.sleep(10)
 
             # Then Y max (no homing, just move directly to max Y)
             # send_gcode(ser, f"G0 Y{Range_Y}")
             # time.sleep(10)
-            send_gcode(ser, "Z0")
-            time.sleep(3)
+            # send_gcode(ser, "Z0")
+            # time.sleep(3)
             # Optionally: return to origin (no homing, just set positions)
-            send_gcode(ser, "G0 X0 Y0")
-            time.sleep(10)
+            # send_gcode(ser, "G0 X0 Y0")
+            # time.sleep(10)
 
         finally:
             stop_flag.set()
