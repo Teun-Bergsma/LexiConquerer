@@ -3,6 +3,7 @@ import time
 import random
 import threading
 import sys
+import keyboard
 # Important: make sure to install the scrcpy (https://github.com/Genymobile/scrcpy) on your system, otherwise this will not run.
 # Phone needs to be connected to the computer and USB debugging enabled.
 # from ppadb.client import Client as AdbClient
@@ -143,15 +144,15 @@ def get_screen_tap_locations(gametype):
     # Spelling Beem Game, return locations of the 7 letters in a format of letter, x, y
     if gametype == "1":
         return [
-            ('letter1', 100, 200),
-            ('letter2', 200, 200),
-            ('letter3', 300, 200),
-            ('letter4', 400, 200),
-            ('letter5', 500, 200),
-            ('letter6', 600, 200),
-            ('letter7', 700, 200),
-            ('enter', 800, 200),
-            ('back', 900, 200)
+            ('letter1', 32, 19),
+            ('letter2', 34, 15),
+            ('letter3', 39, 15),
+            ('letter4', 42, 19),
+            ('letter5', 39, 23),
+            ('letter6', 34, 23),
+            ('letter7', 37, 19),
+            ('enter', 47, 14),
+            # ('back', 900, 200)
         ]
     # Wordle Game, return locations of the 26 letters, the enter and the back keys in a format of letter, x, y
     elif gametype == "2":
@@ -209,62 +210,101 @@ def get_position_loop(ser, stop_flag):
         time.sleep(1)
 
 def main():
-    # Check if the user provided an argument
-    if len(sys.argv) < 2:
-        print("Usage: python TheLexiConquerer.py [game_type_number]")
-        print("Example: python TheLexiConquerer.py 1")
-        sys.exit(1)
+    with serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1) as ser:
+        time.sleep(2)
+        ser.write(b"\r\n\r\n")  # Wake up GRBL
+        time.sleep(2)
+        ser.flushInput()
+        # Check if the user provided an argument
+        if len(sys.argv) < 2:
+            print("Usage: python TheLexiConquerer.py [game_type_number]")
+            print("Example: python TheLexiConquerer.py 1")
+            sys.exit(1)
 
-    connectPorts()
-    game_type_arg = sys.argv[1]
-    screen_tap_locations = get_screen_tap_locations(game_type_arg)
+        connectPorts()
+        game_type_arg = sys.argv[1]
+        screen_tap_locations = get_screen_tap_locations(game_type_arg)
 
-    # Spelling Bee Game
-    if game_type_arg == "1":
+        # Spelling Bee Game
+        if game_type_arg == "1":
+            # Start robot:
+            send_gcode(ser, f"G0 Z-0.4")
+            time.sleep(0.2)
+            x_middle = screen_tap_locations[6][1]
+            y_middle = screen_tap_locations[6][2]
+            send_gcode(ser, f"G0 X{x_middle} Y{y_middle}")
+            time.sleep(10)
 
-        valid_letters = ['n', 'a', 'i', 'd', 'e', 'w', 'h']
-        required_letter = 'h'
-        # Update the first item (the letter) by creating a NEW tuple
-        for i in range(len(valid_letters)):
-            letter, x, y = screen_tap_locations[i]  # unpack
-            screen_tap_locations[i] = (valid_letters[i], x, y)  # create a new tuple
 
-        print(screen_tap_locations)
+            valid_letters = ['y', 'i', 't', 'f', 'd', 'g', 'e']
+            required_letter = 'e'
+            # Update the first item (the letter) by creating a NEW tuple
+            for i in range(len(valid_letters)):
+                letter, x, y = screen_tap_locations[i]  # unpack
+                screen_tap_locations[i] = (valid_letters[i], x, y)  # create a new tuple
 
-        spelling_bee = SpellingBee(valid_letters, required_letter)
-        valid_words = spelling_bee.find_valid_words()
+            print(screen_tap_locations)
 
-        print(f"Found {len(valid_words)} valid words:")
-        for word in valid_words:
-            print(word)
-            # Loop through the letters of the word and tap on the screen
-            for letter in word:
-                # Find the corresponding screen tap location
-                for loc in screen_tap_locations:
-                    if loc[0] == letter:
-                        x, y = loc[1], loc[2]
-                        print(f"Tapping on {letter} at ({x}, {y})")
-                        # Simulate a tap on the screen at (x, y)
-            print("Tapping on enter")
-            # Simulate a tap on the enter key
-    
-    elif game_type_arg == "2":
-        print("Wordle Game")
-        target_word = "dummy"  # Replace with the actual target word
+            spelling_bee = SpellingBee(valid_letters, required_letter)
+            valid_words = spelling_bee.find_valid_words()
 
-        wordle = Wordle(target_word)
-    
-        # Simulate making guesses and getting feedback
-        for attempt in range(wordle.max_attempts):
-            guess = wordle.make_guess()
-            if guess is None:
-                print("No valid guesses left!")
-                break
-            is_correct = wordle.feedback(guess)
-            if is_correct:
-                print(f"Correct guess! The word was '{guess}'")
-                break
-            print(f"Attempt {attempt + 1}/{wordle.max_attempts} failed.\n")
+            print(f"Found {len(valid_words)} valid words:")
+            shuffled_list = random.shuffle(valid_words)
+            shuffled_list = valid_words.copy()
+            random.shuffle(shuffled_list)
+            # print(f"Shuffled list: {shuffled_list}", type(shuffled_list))
+            for word in shuffled_list:
+                print(word)
+                # Loop through the letters of the word and tap on the screen
+                for letter in word:
+                    # Find the corresponding screen tap location
+                    for loc in screen_tap_locations:
+                        if loc[0] == letter:
+                            x, y = loc[1], loc[2]
+                            print(f"Tapping on {letter} at ({x}, {y})")
+                            send_gcode(ser, f"G0 X{x} Y{y}")
+                            time.sleep(2)
+                            send_gcode(ser, f"G0 Z-0.175")
+                            time.sleep(0.2)
+                            send_gcode(ser, f"G0 Z-0.4")
+                            time.sleep(0.2)
+                            # Simulate a tap on the screen at (x, y)
+                print("Tapping on enter")
+                x = screen_tap_locations[7][1]
+                y = screen_tap_locations[7][2]
+                send_gcode(ser, f"G0 X{x} Y{y}")
+                time.sleep(2)
+                send_gcode(ser, f"G0 Z-0.175")
+                time.sleep(0.2)
+                send_gcode(ser, f"G0 Z-0.4")
+                time.sleep(0.2)
+                send_gcode(ser, f"G0 X{x_middle} Y{y_middle}")
+                time.sleep(5)
+                if keyboard.is_pressed("esc"):
+                    send_gcode(ser, f"G0 X0 Y0")
+                    time.sleep(10)
+                    send_gcode(ser, f"G0 Z0")
+                    time.sleep(0.5)
+                    exit()
+                # Simulate a tap on the enter key
+        
+        elif game_type_arg == "2":
+            print("Wordle Game")
+            target_word = "dummy"  # Replace with the actual target word
+
+            wordle = Wordle(target_word)
+        
+            # Simulate making guesses and getting feedback
+            for attempt in range(wordle.max_attempts):
+                guess = wordle.make_guess()
+                if guess is None:
+                    print("No valid guesses left!")
+                    break
+                is_correct = wordle.feedback(guess)
+                if is_correct:
+                    print(f"Correct guess! The word was '{guess}'")
+                    break
+                print(f"Attempt {attempt + 1}/{wordle.max_attempts} failed.\n")
 
 
 if __name__ == "__main__":
