@@ -62,7 +62,7 @@ def main():
             send_gcode(ser, f"G0 Z-0.4")
             time.sleep(5)
 
-            send_gcode(ser, f"G0 Z-0.1")
+            send_gcode(ser, f"G0 Z-0.15")
             time.sleep(5)
 
             send_gcode(ser, f"G0 Z-1")
@@ -71,7 +71,7 @@ def main():
             time.sleep(5)
             send_gcode(ser, f"G0 Z-0.4")
             time.sleep(5)
-            send_gcode(ser, f"G0 Z-0.2")
+            send_gcode(ser, f"G0 Z-0.25")
             time.sleep(5)
             send_gcode(ser, f"G0 Z-0.6")
             time.sleep(5)
