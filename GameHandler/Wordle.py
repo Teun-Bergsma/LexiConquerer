@@ -1,0 +1,135 @@
+from PIL import Image #prob only works in venv
+import random
+
+from enum import Enum
+from PhoneReader import phonereader
+
+class Wordle:
+    def __init__(self):
+        # Make self.word_list the contents of the fullNYTwordlelist.txt file
+        try:
+            with open('fullNYTwordlelist.txt', 'r') as f:
+                self.word_list = [line.strip().lower() for line in f.readlines()]
+        except FileNotFoundError:
+            print("Word list file not found.")
+            quit()
+        self.guesses = []  # List to keep track of guesses
+        self.max_attempts = 6  # Number of allowed guesses
+        self.excluded_letters = set()  # Set of letters to exclude
+        self.green_letters = {}  # Dictionary of green (correct) positions
+        self.yellow_letters = {}  # Dictionary of yellow (incorrect positions but correct letters)
+        
+    def make_guess(self):
+        # Filter out words based on excluded letters and green/yellow info
+        valid_guesses = [word for word in self.word_list if self.is_valid_guess(word)]
+        
+        if not valid_guesses:
+            print("No valid guesses left!")
+            return None
+        
+        guess = random.choice(valid_guesses)
+        self.guesses.append(guess)
+        print(f"Making guess: {guess}")
+        return guess
+    
+    def is_valid_guess(self, word: str):
+        # Ensure the word does not contain excluded letters
+        if any(letter in self.excluded_letters for letter in word):
+            return False
+        
+        # Ensure the word respects green letter positions
+        for idx, letter in self.green_letters.items():
+            if word[idx] != letter:
+                return False
+        
+        # Ensure the word respects yellow letter positions
+        for letter, positions in self.yellow_letters.items():
+            if letter not in word:
+                return False
+            if any(word[pos] == letter for pos in positions):
+                return False
+        
+        return True
+
+    def update_info(self, guess: str, attempt:int):
+        # Simulate the feedback you would get in Wordle
+        # Get the screenshot of the game board
+
+        wordle_reader = WordleReader()
+        wordle_info = wordle_reader.get_board_info(screenshot=None)
+        # Update the target word based on the feedback from the game
+        this_word_info = wordle_info[attempt].info
+        if this_word_info == (WordlePosition.CORRECT, WordlePosition.CORRECT, WordlePosition.CORRECT, WordlePosition.CORRECT, WordlePosition.CORRECT):
+            return True
+        print(guess)
+        for position, letter in enumerate(guess):
+            if this_word_info[position] == WordlePosition.CORRECT:
+                self.green_letters.update({position: letter})
+            elif this_word_info[position] == WordlePosition.WRONGPLACE:
+                self.yellow_letters.update({position: letter})
+            elif this_word_info[position] == WordlePosition.NOTPRESENT:
+                self.excluded_letters.add(letter)
+        print("Green letters: ", self.green_letters)
+        print("Yellow letters: ", self.yellow_letters)
+        print("Excluded letters: ", self.excluded_letters)
+        return False
+
+class Word():
+    def __init__(self, info:tuple):
+        self.info = info
+
+    def __repr__(self):
+        return f"Word(info={self.info})"
+
+class WordlePosition(Enum):
+    CORRECT = 3
+    WRONGPLACE = 2
+    NOTPRESENT = 1
+
+    def __str__(self):
+        return self.name.lower()
+    
+class WordleReader:
+    # Coords on the phone used
+    x_coords: tuple = (85, 275, 465, 655, 845)
+    y_coords: tuple = (400, 600, 800, 1000, 1200, 1400)
+    # Coords on testing phone
+    # x_coords: tuple = (50, 285, 525, 760, 1000)
+    # y_coords: tuple = (500, 800, 1100, 1300, 1500, 1700)
+
+    @staticmethod
+    def get_pixel_info(img, x, y):
+        r, g, b = img.getpixel((x, y))
+
+        if r == 120 and g == 124 and b == 126:
+            return WordlePosition.NOTPRESENT
+        elif r == 201 and g == 180 and b == 88:
+            return WordlePosition.WRONGPLACE
+        elif r == 106 and g == 170 and b == 100:
+            return WordlePosition.CORRECT
+        else:
+            print("Unknown color:", r, g, b)
+            return None
+
+    @classmethod
+    def get_word_info(cls, img, word_int: int) -> Word:
+        y = cls.y_coords[word_int]
+        word_info = [None, None, None, None, None]
+
+        for i in range(len(cls.x_coords)):
+            x = cls.x_coords[i]
+            word_info[i] = cls.get_pixel_info(img, x, y)
+
+        return Word(tuple(word_info))
+
+    @classmethod
+    def get_board_info(cls, screenshot) -> tuple[Word]:
+        phonereader.screenshot()
+        img = Image.open("screen.png")
+        img = img.convert("RGB")
+        words = []
+        for i in range(len(cls.y_coords)):
+            word = cls.get_word_info(img, i)
+            words.append(word)
+
+        return tuple(words)

@@ -4,6 +4,8 @@ import random
 import threading
 import sys
 import keyboard
+from GameHandler.Wordle import Wordle
+from GameHandler.SpellingBee import SpellingBee
 # Important: make sure to install the scrcpy (https://github.com/Genymobile/scrcpy) on your system, otherwise this will not run.
 # Phone needs to be connected to the computer and USB debugging enabled.
 # from ppadb.client import Client as AdbClient
@@ -25,112 +27,7 @@ MAX_Z = 50   # mm
 # Range_Y = 30
 
 Range_X = 50
-Range_Y = 30
-
-# Spelling Bee Game, Returns all the valid words that can be formed with the given letters
-class SpellingBee:
-    def __init__(self, valid_letters: List[str], required_letter: str):
-        self.valid_letters = set(valid_letters)
-        self.required_letter = required_letter.lower()
-        self.words = self.load_dictionary()
-
-    def load_dictionary(self) -> List[str]:
-        # Load a dictionary file (you can use /usr/share/dict/words or a custom word list)
-        try:
-            with open('enable1WordList.txt', 'r') as f:
-                words = [line.strip().lower() for line in f.readlines()]
-        except FileNotFoundError:
-            print("Dictionary file not found.")
-            quit()
-        return words
-
-    def is_valid_word(self, word: str) -> bool:
-        if len(word) < 4:
-            return False
-        if self.required_letter not in word:
-            return False
-        if not set(word).issubset(self.valid_letters):
-            return False
-        return True
-
-    def find_valid_words(self) -> List[str]:
-        return [word for word in self.words if self.is_valid_word(word)]   
-    
-class Wordle:
-    def __init__(self, target_word: str):
-        # Make self.word_list the contents of the fullNYTwordlelist.txt file
-        try:
-            with open('fullNYTwordlelist.txt', 'r') as f:
-                self.word_list = [line.strip().lower() for line in f.readlines()]
-        except FileNotFoundError:
-            print("Word list file not found.")
-            quit()
-        self.target_word = target_word  # The correct word to guess
-        self.guesses = []  # List to keep track of guesses
-        self.max_attempts = 6  # Number of allowed guesses
-        self.excluded_letters = set()  # Set of letters to exclude
-        self.green_letters = {}  # Dictionary of green (correct) positions
-        self.yellow_letters = {}  # Dictionary of yellow (incorrect positions but correct letters)
-        
-    def make_guess(self):
-        # Filter out words based on excluded letters and green/yellow info
-        valid_guesses = [word for word in self.word_list if self.is_valid_guess(word)]
-        
-        if not valid_guesses:
-            print("No valid guesses left!")
-            return None
-        
-        guess = random.choice(valid_guesses)
-        self.guesses.append(guess)
-        print(f"Making guess: {guess}")
-        return guess
-    
-    def is_valid_guess(self, word: str):
-        # Ensure the word does not contain excluded letters
-        if any(letter in self.excluded_letters for letter in word):
-            return False
-        
-        # Ensure the word respects green letter positions
-        for idx, letter in self.green_letters.items():
-            if word[idx] != letter:
-                return False
-        
-        # Ensure the word respects yellow letter positions
-        for letter, positions in self.yellow_letters.items():
-            if letter not in word:
-                return False
-            if any(word[pos] == letter for pos in positions):
-                return False
-        
-        return True
-
-    def feedback(self, guess: str):
-        # Simulate the feedback you would get in Wordle
-        green = {}
-        yellow = {}
-        excluded = set()
-
-        for i, (g, t) in enumerate(zip(guess, self.target_word)):
-            if g == t:
-                green[i] = g
-            elif g in self.target_word:
-                if g not in yellow:
-                    yellow[g] = []
-                yellow[g].append(i)
-            else:
-                excluded.add(g)
-        
-        # Update the green, yellow, and excluded letters
-        self.green_letters.update(green)
-        self.yellow_letters.update(yellow)
-        self.excluded_letters.update(excluded)
-
-        print(f"Green letters: {green}")
-        print(f"Yellow letters: {yellow}")
-        print(f"Excluded letters: {excluded}")
-        
-        # Return True if the guess was correct, False otherwise
-        return guess == self.target_word
+Range_Y = 30 
 
 # Connect both the the phone usb port and the grbl port
 def connectPorts():
@@ -290,20 +187,21 @@ def main():
         
         elif game_type_arg == "2":
             print("Wordle Game")
-            target_word = "dummy"  # Replace with the actual target word
+            wordle = Wordle()
 
-            wordle = Wordle(target_word)
-        
             # Simulate making guesses and getting feedback
             for attempt in range(wordle.max_attempts):
                 guess = wordle.make_guess()
                 if guess is None:
                     print("No valid guesses left!")
                     break
-                is_correct = wordle.feedback(guess)
+                input("Press 'Y' and Enter to continue: ").strip().upper() != 'Y' and exit("Exiting game.")
+                print(f"Guessing: {guess}")
+                is_correct = wordle.update_info(guess, attempt)
                 if is_correct:
                     print(f"Correct guess! The word was '{guess}'")
                     break
+
                 print(f"Attempt {attempt + 1}/{wordle.max_attempts} failed.\n")
 
 

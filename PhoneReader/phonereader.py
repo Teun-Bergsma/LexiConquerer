@@ -11,7 +11,9 @@ if len(devices) == 0:
 
 device = devices[0]
 print(f"Connected to {device.serial}")
-# Take a screenshot and save it to a file
-result = device.screencap()
-with open("screen.png", "wb") as fp:
-    fp.write(result)
+
+def screenshot():
+    # Take a screenshot and save it to a file
+    result = device.screencap()
+    with open("screen.png", "wb") as fp:
+        fp.write(result)
