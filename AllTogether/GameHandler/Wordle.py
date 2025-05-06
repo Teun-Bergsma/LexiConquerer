@@ -43,10 +43,10 @@ class Wordle:
                 return False
         
         # Ensure the word respects yellow letter positions
-        for letter, positions in self.yellow_letters.items():
+        for letter, bad_positions in self.yellow_letters.items():
             if letter not in word:
                 return False
-            if any(word[pos] == letter for pos in positions):
+            if any(word[pos] == letter for pos in bad_positions):
                 return False
         
         return True
@@ -66,7 +66,9 @@ class Wordle:
             if this_word_info[position] == WordlePosition.CORRECT:
                 self.green_letters.update({position: letter})
             elif this_word_info[position] == WordlePosition.WRONGPLACE:
-                self.yellow_letters.update({position: letter})
+                if letter not in self.yellow_letters:
+                    self.yellow_letters[letter] = set()
+                self.yellow_letters[letter].add(position)
             elif this_word_info[position] == WordlePosition.NOTPRESENT:
                 self.excluded_letters.add(letter)
         print("Green letters: ", self.green_letters)
@@ -101,15 +103,15 @@ class WordleReader:
     def get_pixel_info(img, x, y):
         r, g, b = img.getpixel((x, y))
 
-        if r == 120 and g == 124 and b == 126:
-            return WordlePosition.NOTPRESENT
-        elif r == 201 and g == 180 and b == 88:
+        # if r == 120 and g == 124 and b == 126:
+        #     return WordlePosition.NOTPRESENT
+        if r == 181 and g == 159 and b == 59:
             return WordlePosition.WRONGPLACE
-        elif r == 106 and g == 170 and b == 100:
+        elif r == 83 and g == 141 and b == 78:
             return WordlePosition.CORRECT
         else:
             print("Unknown color:", r, g, b)
-            return None
+            return WordlePosition.NOTPRESENT
 
     @classmethod
     def get_word_info(cls, img, word_int: int) -> Word:
@@ -123,7 +125,7 @@ class WordleReader:
         return Word(tuple(word_info))
 
     @classmethod
-    def get_board_info(cls, screenshot) -> tuple[Word]:
+    def get_board_info(cls, screenshot):
         phonereader.screenshot()
         img = Image.open("screen.png")
         img = img.convert("RGB")

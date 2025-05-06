@@ -13,18 +13,18 @@ MAX_Y = 120
 MAX_Z = 50
 
 # Range used for motion
-Range_X = 50
+Range_X = 55
 Range_Y = 30
 
 Start_X = 10
 Start_Y = 9
 
 # Jog step in mm
-JOG_STEP = 1
+JOG_STEP = 0.25
 
 # Current position (updated manually)
-current_x = 0
-current_y = 0
+current_x = 50
+current_y = 11.75
 current_z = 0
 
 def clamp(val, min_val, max_val):
@@ -73,7 +73,8 @@ def handle_keypress(ser):
         time.sleep(0.2)
 
     elif keyboard.is_pressed("t"):
-        current_z = -0.175
+        print("Current: ", current_x, current_y, current_z)
+        current_z = -0.05
         send_gcode(ser, f"G0 Z{current_z}")
         time.sleep(0.2)
         current_z = -0.4
@@ -97,28 +98,40 @@ def main():
         ser.write(b"\r\n\r\n")  # Wake up GRBL
         time.sleep(2)
         ser.flushInput()
+        current_x = 34
+        current_y = 23
 
-        stop_flag = threading.Event()
-        thread = threading.Thread(target=get_position_loop, args=(ser, stop_flag))
-        thread.start()
+        # stop_flag = threading.Event()
+        # thread = threading.Thread(target=get_position_loop, args=(ser, stop_flag))
+        # thread.start()
+        
 
         try:
             send_gcode(ser, "G90")         # Absolute positioning
             send_gcode(ser, "F1000")       # Feedrate (mm/min)
-            send_gcode(ser, f"G0 X{current_x} Y{current_y} Z{current_z}")
+
+            # send_gcode(ser, f"G0 X{current_x} Y{current_y} Z{current_z}")
+            send_gcode(ser, f"G0 Z-0.4")
+            time.sleep(1)
+
+            # Go to middle letter.
+            send_gcode(ser, f"G0 X50 Y11.75")
+            current_x = 34
+            current_y = 23
+            time.sleep(5)
 
             print("Use ← → ↑ ↓ to move, T to change Z, ESC to quit.")
 
             while True:
                 handle_keypress(ser)
-                print(f"Current Position: X={current_x}, Y={current_y}, Z={current_z}")
+                # print(f"Current Position: X={current_x}, Y={current_y}, Z={current_z}")
                 if keyboard.is_pressed("esc"):
                     break
                 time.sleep(0.2)
 
         finally:
-            stop_flag.set()
-            thread.join()
+            # stop_flag.set()
+            # thread.join()
             print("Exiting...")
 
 if __name__ == "__main__":

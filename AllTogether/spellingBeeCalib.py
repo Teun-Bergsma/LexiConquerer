@@ -58,20 +58,94 @@ def main():
             time.sleep(1)
 
             # Go to middle letter.
-            send_gcode(ser, f"G0 X37 Y19")
+            send_gcode(ser, f"G0 X34 Y23")
             time.sleep(10)
 
-            send_gcode(ser, f"G0 Z-0.175")
-            time.sleep(0.2)
+            send_gcode(ser, f"G0 Z-0.05")
+            time.sleep(0.7)
             send_gcode(ser, f"G0 Z-0.4")
             time.sleep(0.2)
 
-            send_gcode(ser, f"G0 X47 Y14")
-            time.sleep(2)
-            send_gcode(ser, f"G0 Z-0.175")
-            time.sleep(0.2)
+            send_gcode(ser, f"G0 X37 Y19")
+            time.sleep(3)
+            send_gcode(ser, f"G0 Z-0.05")
+            time.sleep(0.7)
             send_gcode(ser, f"G0 Z-0.4")
             time.sleep(2)
+
+            send_gcode(ser, f"G0 X39 Y15")
+            time.sleep(3)
+            send_gcode(ser, f"G0 Z-0.05")
+            time.sleep(0.7)
+            send_gcode(ser, f"G0 Z-0.4")
+            time.sleep(2)
+
+            send_gcode(ser, f"G0 X47 Y14")
+            time.sleep(3)
+            send_gcode(ser, f"G0 Z-0.05")
+            time.sleep(0.7)
+            send_gcode(ser, f"G0 Z-0.4")
+            time.sleep(2)
+
+            send_gcode(ser, f"G0 X34 Y23")
+            time.sleep(3)
+
+            send_gcode(ser, f"G0 Z-0.05")
+            time.sleep(0.7)
+            send_gcode(ser, f"G0 Z-0.4")
+            time.sleep(0.2)
+
+            send_gcode(ser, f"G0 X37 Y19")
+            time.sleep(3)
+            send_gcode(ser, f"G0 Z-0.05")
+            time.sleep(0.7)
+            send_gcode(ser, f"G0 Z-0.4")
+            time.sleep(2)
+
+            send_gcode(ser, f"G0 X39 Y15")
+            time.sleep(3)
+            send_gcode(ser, f"G0 Z-0.05")
+            time.sleep(0.7)
+            send_gcode(ser, f"G0 Z-0.4")
+            time.sleep(2)
+
+            send_gcode(ser, f"G0 X47 Y14")
+            time.sleep(3)
+            send_gcode(ser, f"G0 Z-0.05")
+            time.sleep(0.7)
+            send_gcode(ser, f"G0 Z-0.4")
+            time.sleep(2)
+
+
+            send_gcode(ser, f"G0 X34 Y23")
+            time.sleep(3)
+
+            send_gcode(ser, f"G0 Z-0.05")
+            time.sleep(0.7)
+            send_gcode(ser, f"G0 Z-0.4")
+            time.sleep(0.2)
+
+            send_gcode(ser, f"G0 X37 Y19")
+            time.sleep(3)
+            send_gcode(ser, f"G0 Z-0.05")
+            time.sleep(0.7)
+            send_gcode(ser, f"G0 Z-0.4")
+            time.sleep(2)
+
+            send_gcode(ser, f"G0 X39 Y15")
+            time.sleep(3)
+            send_gcode(ser, f"G0 Z-0.05")
+            time.sleep(0.7)
+            send_gcode(ser, f"G0 Z-0.4")
+            time.sleep(2)
+
+            send_gcode(ser, f"G0 X47 Y14")
+            time.sleep(3)
+            send_gcode(ser, f"G0 Z-0.05")
+            time.sleep(0.7)
+            send_gcode(ser, f"G0 Z-0.4")
+            time.sleep(2)
+
 
 
             send_gcode(ser, f"G0 Z-1")

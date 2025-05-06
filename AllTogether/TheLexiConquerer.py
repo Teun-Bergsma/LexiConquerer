@@ -54,33 +54,33 @@ def get_screen_tap_locations(gametype):
     # Wordle Game, return locations of the 26 letters, the enter and the back keys in a format of letter, x, y
     elif gametype == "2":
         return [
-            ('a', 100, 200),
-            ('b', 200, 200),
-            ('c', 300, 200),
-            ('d', 400, 200),
-            ('e', 500, 200),
-            ('f', 600, 200),
-            ('g', 700, 200),
-            ('h', 800, 200),
-            ('i', 900, 200),
-            ('j', 1000, 200),
-            ('k', 1100, 200),
-            ('l', 1200, 200),
-            ('m', 1300, 200),
-            ('n', 1400, 200),
-            ('o', 1500, 200),
-            ('p', 1600, 200),
-            ('q', 1700, 200),
-            ('r', 1800, 200),
-            ('s', 1900, 200),
-            ('t', 2000, 200),
-            ('u', 2100, 200),
-            ('v', 2200, 200),
-            ('w', 2300, 200),
-            ('x', 2400, 200),
-            ('y', 2500, 200),
-            ('z', 2600, 200),
-            ('enter', 2700, 200),
+            ('a', 48.5, 27),
+            ('b', 52, 16.25),
+            ('c', 52, 20.5),
+            ('d', 48.5, 22.5),
+            ('e', 44.75, 23.75),
+            ('f', 48.5, 20.5),
+            ('g', 48.5, 18.25),
+            ('h', 48.5, 16.25),
+            ('i', 44.75, 13),
+            ('j', 48.5, 14),
+            ('k', 48.5, 11.75),
+            ('l', 48.5, 9.5),
+            ('m', 52, 12),
+            ('n', 52, 14.25),
+            ('o', 44.75, 11),
+            ('p', 44.75, 9),
+            ('q', 44.75, 28.25),
+            ('r', 44.75, 21.5),
+            ('s', 48.5, 24.75),
+            ('t', 44.75, 19.25),
+            ('u', 44.75, 15.25),
+            ('v', 52, 18.5),
+            ('w', 44.75, 26),
+            ('x', 52, 22.75),
+            ('y', 44.75, 17.25),
+            ('z', 52, 25),
+            ('enter', 52.5, 27.5),
             ('back', 2800, 200)
         ]
     else:
@@ -133,8 +133,8 @@ def main():
             time.sleep(10)
 
 
-            valid_letters = ['y', 'i', 't', 'f', 'd', 'g', 'e']
-            required_letter = 'e'
+            valid_letters = ['n', 'g', 'w', 'm', 'e', 'i', 'o']
+            required_letter = 'o'
             # Update the first item (the letter) by creating a NEW tuple
             for i in range(len(valid_letters)):
                 letter, x, y = screen_tap_locations[i]  # unpack
@@ -161,8 +161,8 @@ def main():
                             print(f"Tapping on {letter} at ({x}, {y})")
                             send_gcode(ser, f"G0 X{x} Y{y}")
                             time.sleep(2)
-                            send_gcode(ser, f"G0 Z-0.175")
-                            time.sleep(0.2)
+                            send_gcode(ser, f"G0 Z-0.05")
+                            time.sleep(0.5)
                             send_gcode(ser, f"G0 Z-0.4")
                             time.sleep(0.2)
                             # Simulate a tap on the screen at (x, y)
@@ -171,8 +171,8 @@ def main():
                 y = screen_tap_locations[7][2]
                 send_gcode(ser, f"G0 X{x} Y{y}")
                 time.sleep(2)
-                send_gcode(ser, f"G0 Z-0.175")
-                time.sleep(0.2)
+                send_gcode(ser, f"G0 Z-0.05")
+                time.sleep(0.5)
                 send_gcode(ser, f"G0 Z-0.4")
                 time.sleep(0.2)
                 send_gcode(ser, f"G0 X{x_middle} Y{y_middle}")
@@ -188,6 +188,12 @@ def main():
         elif game_type_arg == "2":
             print("Wordle Game")
             wordle = Wordle()
+            send_gcode(ser, f"G0 Z-0.4")
+            time.sleep(0.2)
+            x_middle = screen_tap_locations[6][1]
+            y_middle = screen_tap_locations[6][2]
+            send_gcode(ser, f"G0 X{x_middle} Y{y_middle}")
+            time.sleep(10)
 
             # Simulate making guesses and getting feedback
             for attempt in range(wordle.max_attempts):
@@ -195,8 +201,41 @@ def main():
                 if guess is None:
                     print("No valid guesses left!")
                     break
-                input("Press 'Y' and Enter to continue: ").strip().upper() != 'Y' and exit("Exiting game.")
+                # input("Press 'Y' and Enter to continue: ").strip().upper() != 'Y' and exit("Exiting game.")
                 print(f"Guessing: {guess}")
+                # print(word)
+                # Loop through the letters of the word and tap on the screen
+                for letter in guess:
+                    # Find the corresponding screen tap location
+                    for loc in screen_tap_locations:
+                        if loc[0] == letter:
+                            x, y = loc[1], loc[2]
+                            print(f"Tapping on {letter} at ({x}, {y})")
+                            send_gcode(ser, f"G0 X{x} Y{y}")
+                            time.sleep(2)
+                            send_gcode(ser, f"G0 Z-0.05")
+                            time.sleep(0.5)
+                            send_gcode(ser, f"G0 Z-0.4")
+                            time.sleep(0.2)
+                            # Simulate a tap on the screen at (x, y)
+                print("Tapping on enter")
+                x = screen_tap_locations[26][1]
+                y = screen_tap_locations[26][2]
+                send_gcode(ser, f"G0 X{x} Y{y}")
+                time.sleep(2)
+                send_gcode(ser, f"G0 Z-0.05")
+                time.sleep(0.5)
+                send_gcode(ser, f"G0 Z-0.4")
+                time.sleep(0.2)
+                send_gcode(ser, f"G0 X{x_middle} Y{y_middle}")
+                time.sleep(5)
+                if keyboard.is_pressed("esc"):
+                    send_gcode(ser, f"G0 X0 Y0")
+                    time.sleep(10)
+                    send_gcode(ser, f"G0 Z0")
+                    time.sleep(0.5)
+                    exit()
+                # Simulate a tap on the enter key
                 is_correct = wordle.update_info(guess, attempt)
                 if is_correct:
                     print(f"Correct guess! The word was '{guess}'")
