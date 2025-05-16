@@ -187,6 +187,7 @@ def main():
                 # Simulate a tap on the enter key
         
         elif game_type_arg == "2":
+            CHATGPTTOGGLE = False
             print("Wordle Game")
             wordle = Wordle()
             send_gcode(ser, f"G0 Z-0.4")
@@ -198,13 +199,22 @@ def main():
 
             # Simulate making guesses and getting feedback
             for attempt in range(wordle.max_attempts):
-                if attempt == 0:
-                    guess = "furor"
+                if not CHATGPTTOGGLE:
+                    if attempt == 0:
+                        guess = "crane"
+                    else:
+                        guess = wordle.make_guess()
+                    if guess is None:
+                        print("No valid guesses left!")
+                        break
                 else:
-                    guess = wordle.make_guess()
-                if guess is None:
-                    print("No valid guesses left!")
-                    break
+                    guess = None
+                    while guess is None:
+                        print("Making guess...")
+                        guess = wordle.make_guess_chatgpt()
+                        time.sleep(2)
+                
+                
                 # input("Press 'Y' and Enter to continue: ").strip().upper() != 'Y' and exit("Exiting game.")
                 print(f"Guessing: {guess}")
                 # print(word)

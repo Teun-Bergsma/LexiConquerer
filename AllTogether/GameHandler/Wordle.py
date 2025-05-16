@@ -4,6 +4,13 @@ import random
 from enum import Enum
 from PhoneReader import phonereader
 
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY"),  # Perform `export [API KEY]` in the terminal. A working API key can be found in the README.
+)
+
 class Wordle:
     def __init__(self):
         # Make self.word_list the contents of the fullNYTwordlelist.txt file
@@ -31,6 +38,52 @@ class Wordle:
         self.guesses.append(guess)
         print(f"Making guess: {guess}")
         return guess
+
+    def make_guess_chatgpt(self):
+        # plantGPT_input = f"For the plant species {user_input}, please give the values for the amount of days between every watering (`x days`, 1 EXACT amount, not a range), the amount of water (from the 3 options: `A little water`, `Some water`, `A lot of water`) and the amount of light needed (from the 4 options: `Sun`, `Half sun`, `Half shade`, `Shade`). Please shape your answer in the format: 'x days, water amount, light amount'. Do not write any prior texts such as 'this is what you can provide...'. I want ONLY what I described.'"
+        # Generate a response by ChatGPT (GPT-4o-mini) with the input and user as input.
+        inputstr = "You are a Wordle solver. I will give you the letters currently guessed, and note which letters are present in the final word and on the right position, the letters that are present in the final word but on the wrong position, and the letters that are not present in the final word. You will give me one English word consisting of 5 letters that respects these rules. Position 0 is the first letter, position 4 is the last letter."
+ 
+        inputstr += "The letters that are present and in the correct position are:"
+        # Ensure the word respects green letter positions
+        if self.green_letters:
+            for idx, letter in self.green_letters.items():
+                inputstr += f" '{letter}' in position {idx},"
+        else:
+            inputstr += "No letters are present and in the correct position yet."
+        # Ensure the word respects yellow letter positions
+        inputstr += "The letters that ARE PRESENT but in the WRONG POSITION are:"
+        if self.yellow_letters:
+            for letter, bad_positions in self.yellow_letters.items():
+                inputstr += f" '{letter}' SHOULD NOT BE IN position(s) {', '.join(map(str, bad_positions))},"
+        else:
+            inputstr += "No letters are present but in the wrong position yet."
+        inputstr += "The letters that are NOT present in the word and thus you are NOT ALLOWED TO USE are:"
+        if self.excluded_letters:
+            for letter in self.excluded_letters:
+                inputstr += f" '{letter}',"
+        else:
+            inputstr += "No letters are not present in the word yet."
+        inputstr += "Please give me a word that respects these rules. Do not write any prior texts such as 'this word could work...'. I want ONLY what I described: ONE WORD."
+        print("prompt: ", inputstr)
+        response = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": inputstr,
+                }
+            ],
+            model="gpt-4o-mini",
+        )
+        # Select only the direct textual response content of the total response.
+        content = response.choices[0].message.content
+        print("response: ", content)
+        # Since it is in a specific format, we can split this into the respective variables.
+        is_five_letters = content.strip().lower().isalpha() and len(content.strip().lower()) == 5
+        if is_five_letters:
+            return content.strip().lower()
+        else:
+            return None
     
     def is_valid_guess(self, word: str):
         # Ensure the word does not contain excluded letters
