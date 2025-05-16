@@ -40,8 +40,8 @@ class Wordle:
         return guess
 
     def make_guess_chatgpt(self):
-        # plantGPT_input = f"For the plant species {user_input}, please give the values for the amount of days between every watering (`x days`, 1 EXACT amount, not a range), the amount of water (from the 3 options: `A little water`, `Some water`, `A lot of water`) and the amount of light needed (from the 4 options: `Sun`, `Half sun`, `Half shade`, `Shade`). Please shape your answer in the format: 'x days, water amount, light amount'. Do not write any prior texts such as 'this is what you can provide...'. I want ONLY what I described.'"
         # Generate a response by ChatGPT (GPT-4o-mini) with the input and user as input.
+        # inputstr is the prompt for the model.
         inputstr = "You are a Wordle solver. I will give you the letters currently guessed, and note which letters are present in the final word and on the right position, the letters that are present in the final word but on the wrong position, and the letters that are not present in the final word. You will give me one English word consisting of 5 letters that respects these rules. Position 0 is the first letter, position 4 is the last letter."
  
         inputstr += "The letters that are present and in the correct position are:"
@@ -59,13 +59,16 @@ class Wordle:
         else:
             inputstr += "No letters are present but in the wrong position yet."
         inputstr += "The letters that are NOT present in the word and thus you are NOT ALLOWED TO USE are:"
+        
+        # Ensure the word does not contain excluded letters
         if self.excluded_letters:
             for letter in self.excluded_letters:
                 inputstr += f" '{letter}',"
         else:
             inputstr += "No letters are not present in the word yet."
         inputstr += "Please give me a word that respects these rules. Do not write any prior texts such as 'this word could work...'. I want ONLY what I described: ONE WORD."
-        print("prompt: ", inputstr)
+
+        # Generate a response by ChatGPT (GPT-4o-mini) with the input and user as input.
         response = client.chat.completions.create(
             messages=[
                 {
@@ -77,12 +80,14 @@ class Wordle:
         )
         # Select only the direct textual response content of the total response.
         content = response.choices[0].message.content
-        print("response: ", content)
-        # Since it is in a specific format, we can split this into the respective variables.
+        # Strip, lowercase and check if content is a valid 5 letter word.
         is_five_letters = content.strip().lower().isalpha() and len(content.strip().lower()) == 5
         if is_five_letters:
+            # Return the word.
             return content.strip().lower()
         else:
+            # If the response is not a valid 5 letter word, print an error message and return None.
+            print("ChatGPT did not return a valid 5 letter word.")
             return None
     
     def is_valid_guess(self, word: str):

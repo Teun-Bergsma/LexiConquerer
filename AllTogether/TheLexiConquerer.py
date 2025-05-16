@@ -152,6 +152,7 @@ def main():
 
             spelling_bee = SpellingBee(valid_letters, required_letter)
             if not CHATGPTTOGGLE:
+                # Get the list of words from the Spelling Bee Word List.
                 valid_words = spelling_bee.find_valid_words()
                 print(f"Found {len(valid_words)} valid words:")
                 shuffled_list = random.shuffle(valid_words)
@@ -173,20 +174,16 @@ def main():
                     frequency_penalty=0,
                     presence_penalty=0,
                 )
-                # Parse the response to get the list of words
+                # Parse the response to get the list of words.
+                # Get the unique, valid words from the response. Those are used as input words.
                 word_list = response.choices[0].message.content.split(",")
                 word_list = [word.strip() for word in word_list]
                 print(f"Found {len(word_list)} valid words:")
-                print("Found words: ", word_list)
                 unique_words = set(word_list)
-                print("Found unique words: ", unique_words)
                 valid_words = [word for word in unique_words if spelling_bee.is_valid_word(word)]
-                print("Found valid words: ", valid_words)
                 shuffled_list = valid_words.copy()
                 random.shuffle(shuffled_list)
                 sorted_list = sorted(shuffled_list, key=len, reverse=True)
-                print("Final list", sorted_list)
-            # print(f"Shuffled list: {shuffled_list}", type(shuffled_list))
             for word in sorted_list:
                 print(word)
                 # Loop through the letters of the word and tap on the screen
@@ -236,19 +233,22 @@ def main():
             # Simulate making guesses and getting feedback
             for attempt in range(wordle.max_attempts):
                 if not CHATGPTTOGGLE:
+                    # The most optimal guess is "crane", therefore we start with this.
                     if attempt == 0:
                         guess = "crane"
                     else:
+                        # Make a guess using the Wordle make_guess function.
                         guess = wordle.make_guess()
                     if guess is None:
+                        # If not more valid guesses, exit the game.
                         print("No valid guesses left!")
                         break
                 else:
+                    # We utilize ChatGPT to make the guess.
                     guess = None
                     while guess is None:
-                        print("Making guess...")
+                        # Keep generating a word, until a word in the right format is returned.
                         guess = wordle.make_guess_chatgpt()
-                        time.sleep(2)
                 
                 
                 # input("Press 'Y' and Enter to continue: ").strip().upper() != 'Y' and exit("Exiting game.")
