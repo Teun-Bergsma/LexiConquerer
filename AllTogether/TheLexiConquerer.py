@@ -13,6 +13,13 @@ from PIL import Image
 from enum import Enum
 from typing import List
 
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY"),  # Perform `export [API KEY]` in the terminal. A working API key can be found in the README.
+)
+
 # Set your serial port and baud rate here
 SERIAL_PORT = '/dev/tty.usbmodem14101'  # <-- Replace with your actual port!
 BAUD_RATE = 115200
@@ -124,6 +131,7 @@ def main():
 
         # Spelling Bee Game
         if game_type_arg == "1":
+            CHATGPTTOGGLE = True
             # Start robot:
             send_gcode(ser, f"G0 Z-0.4")
             time.sleep(0.2)
@@ -133,7 +141,7 @@ def main():
             time.sleep(10)
 
 
-            valid_letters = ['i', 'w', 'b', 'l', 'o', 'e', 'p']
+            valid_letters = ['b', 'l', 'o', 'w', 'e', 'i', 'p']
             required_letter = 'p'
             # Update the first item (the letter) by creating a NEW tuple
             for i in range(len(valid_letters)):
@@ -143,13 +151,41 @@ def main():
             print(screen_tap_locations)
 
             spelling_bee = SpellingBee(valid_letters, required_letter)
-            valid_words = spelling_bee.find_valid_words()
-
-            print(f"Found {len(valid_words)} valid words:")
-            shuffled_list = random.shuffle(valid_words)
-            shuffled_list = valid_words.copy()
-            random.shuffle(shuffled_list)
-            sorted_list = sorted(shuffled_list, key=len, reverse=True)
+            if not CHATGPTTOGGLE:
+                valid_words = spelling_bee.find_valid_words()
+                print(f"Found {len(valid_words)} valid words:")
+                shuffled_list = random.shuffle(valid_words)
+                shuffled_list = valid_words.copy()
+                random.shuffle(shuffled_list)
+                sorted_list = sorted(shuffled_list, key=len, reverse=True)
+            else:
+                # Get the list of words from ChatGPT
+                inputstr = f"Please give me a list of about 50 words that can be formed with the letters {valid_letters} and that contain the letter {required_letter}. The words should be in lowercase and separated by commas. NO OHTER LETTERS THAN THE ONES MENTIONED MAY BE USED! DO NOT GIVE DUPLICATE WORDS! Do not write any prior texts such as 'this is what you can provide...'. I want ONLY what I described."
+                print("prompt: ", inputstr)
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "user", "content": inputstr}
+                    ],
+                    temperature=0,
+                    max_tokens=1000,
+                    top_p=1,
+                    frequency_penalty=0,
+                    presence_penalty=0,
+                )
+                # Parse the response to get the list of words
+                word_list = response.choices[0].message.content.split(",")
+                word_list = [word.strip() for word in word_list]
+                print(f"Found {len(word_list)} valid words:")
+                print("Found words: ", word_list)
+                unique_words = set(word_list)
+                print("Found unique words: ", unique_words)
+                valid_words = [word for word in unique_words if spelling_bee.is_valid_word(word)]
+                print("Found valid words: ", valid_words)
+                shuffled_list = valid_words.copy()
+                random.shuffle(shuffled_list)
+                sorted_list = sorted(shuffled_list, key=len, reverse=True)
+                print("Final list", sorted_list)
             # print(f"Shuffled list: {shuffled_list}", type(shuffled_list))
             for word in sorted_list:
                 print(word)
