@@ -62,6 +62,18 @@ class Wordle:
         if this_word_info == (WordlePosition.CORRECT, WordlePosition.CORRECT, WordlePosition.CORRECT, WordlePosition.CORRECT, WordlePosition.CORRECT):
             return True
         print(guess)
+        # for position, letter in enumerate(guess):
+        #     if this_word_info[position] == WordlePosition.CORRECT:
+        #         self.green_letters.update({position: letter})
+        #     elif this_word_info[position] == WordlePosition.WRONGPLACE:
+        #         if letter not in self.yellow_letters:
+        #             self.yellow_letters[letter] = set()
+        #         self.yellow_letters[letter].add(position)
+        #     elif this_word_info[position] == WordlePosition.NOTPRESENT:
+        #         print("Letter not present: ", letter, "with green letters: ", self.green_letters.values(), "and yellow letters: ", self.yellow_letters)
+        #         if (letter not in self.green_letters.values() and letter not in self.yellow_letters):
+        #             self.excluded_letters.add(letter)
+        # First pass: collect green and yellow info
         for position, letter in enumerate(guess):
             if this_word_info[position] == WordlePosition.CORRECT:
                 self.green_letters.update({position: letter})
@@ -69,8 +81,12 @@ class Wordle:
                 if letter not in self.yellow_letters:
                     self.yellow_letters[letter] = set()
                 self.yellow_letters[letter].add(position)
-            elif this_word_info[position] == WordlePosition.NOTPRESENT:
-                self.excluded_letters.add(letter)
+
+        # Second pass: mark exclusions only after green/yellow are known
+        for position, letter in enumerate(guess):
+            if this_word_info[position] == WordlePosition.NOTPRESENT:
+                if (letter not in self.green_letters.values() and letter not in self.yellow_letters):
+                    self.excluded_letters.add(letter)
         print("Green letters: ", self.green_letters)
         print("Yellow letters: ", self.yellow_letters)
         print("Excluded letters: ", self.excluded_letters)

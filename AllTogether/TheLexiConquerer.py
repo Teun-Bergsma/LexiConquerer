@@ -14,7 +14,7 @@ from enum import Enum
 from typing import List
 
 # Set your serial port and baud rate here
-SERIAL_PORT = '/dev/tty.usbmodem14201'  # <-- Replace with your actual port!
+SERIAL_PORT = '/dev/tty.usbmodem14101'  # <-- Replace with your actual port!
 BAUD_RATE = 115200
 
 # Define GRBL max travel values (match your $130, $131, $132 settings)
@@ -133,8 +133,8 @@ def main():
             time.sleep(10)
 
 
-            valid_letters = ['n', 'g', 'w', 'm', 'e', 'i', 'o']
-            required_letter = 'o'
+            valid_letters = ['i', 'w', 'b', 'l', 'o', 'e', 'p']
+            required_letter = 'p'
             # Update the first item (the letter) by creating a NEW tuple
             for i in range(len(valid_letters)):
                 letter, x, y = screen_tap_locations[i]  # unpack
@@ -149,8 +149,9 @@ def main():
             shuffled_list = random.shuffle(valid_words)
             shuffled_list = valid_words.copy()
             random.shuffle(shuffled_list)
+            sorted_list = sorted(shuffled_list, key=len, reverse=True)
             # print(f"Shuffled list: {shuffled_list}", type(shuffled_list))
-            for word in shuffled_list:
+            for word in sorted_list:
                 print(word)
                 # Loop through the letters of the word and tap on the screen
                 for letter in word:
@@ -197,7 +198,10 @@ def main():
 
             # Simulate making guesses and getting feedback
             for attempt in range(wordle.max_attempts):
-                guess = wordle.make_guess()
+                if attempt == 0:
+                    guess = "furor"
+                else:
+                    guess = wordle.make_guess()
                 if guess is None:
                     print("No valid guesses left!")
                     break
@@ -239,6 +243,10 @@ def main():
                 is_correct = wordle.update_info(guess, attempt)
                 if is_correct:
                     print(f"Correct guess! The word was '{guess}'")
+                    send_gcode(ser, f"G0 X0 Y0")
+                    time.sleep(10)
+                    send_gcode(ser, f"G0 Z0")
+                    time.sleep(0.5)
                     break
 
                 print(f"Attempt {attempt + 1}/{wordle.max_attempts} failed.\n")
