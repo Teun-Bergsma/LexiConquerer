@@ -161,7 +161,7 @@ def main():
                 sorted_list = sorted(shuffled_list, key=len, reverse=True)
             else:
                 # Get the list of words from ChatGPT
-                inputstr = f"Please give me a list of about 50 words that can be formed with the letters {valid_letters} and that contain the letter {required_letter}. The words should be in lowercase and separated by commas. NO OHTER LETTERS THAN THE ONES MENTIONED MAY BE USED! DO NOT GIVE DUPLICATE WORDS! Do not write any prior texts such as 'this is what you can provide...'. I want ONLY what I described."
+                inputstr = f"Please give me a list of about 50 words that can be formed with the letters {valid_letters} and that contain the letter {required_letter}. The words should be in lowercase and separated by commas. NO OTHER LETTERS THAN THE ONES MENTIONED MAY BE USED! DO NOT GIVE DUPLICATE WORDS! Do not write any prior texts such as 'this is what you can provide...'. I want ONLY what I described."
                 print("prompt: ", inputstr)
                 response = client.chat.completions.create(
                     model="gpt-4o-mini",

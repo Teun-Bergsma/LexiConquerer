@@ -3,7 +3,7 @@ import time
 import threading
 
 # Set your serial port and baud rate here
-SERIAL_PORT = '/dev/tty.usbmodem14201'  # <-- Replace with your actual port!
+SERIAL_PORT = '/dev/tty.usbmodem14101'  # <-- Replace with your actual port!
 BAUD_RATE = 115200
 
 # Define GRBL max travel values (match your $130, $131, $132 settings)
