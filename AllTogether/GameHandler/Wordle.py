@@ -67,7 +67,7 @@ class Wordle:
         else:
             inputstr += "No letters are not present in the word yet."
         inputstr += "Please give me a word that respects these rules. Do not write any prior texts such as 'this word could work...'. I want ONLY what I described: ONE WORD."
-
+        print("Input string for ChatGPT: ", inputstr)
         # Generate a response by ChatGPT (GPT-4o-mini) with the input and user as input.
         response = client.chat.completions.create(
             messages=[
@@ -80,6 +80,7 @@ class Wordle:
         )
         # Select only the direct textual response content of the total response.
         content = response.choices[0].message.content
+        print("ChatGPT response: ", content)
         # Strip, lowercase and check if content is a valid 5 letter word.
         is_five_letters = content.strip().lower().isalpha() and len(content.strip().lower()) == 5
         if is_five_letters:
@@ -149,6 +150,18 @@ class Wordle:
         print("Yellow letters: ", self.yellow_letters)
         print("Excluded letters: ", self.excluded_letters)
         return False
+    
+    def extra_correctness_check(self, guess):
+        counter = 0
+        for position, letter in self.green_letters.items():
+            if letter is None:
+                return False
+            else:
+                counter += 1
+        if counter == 5:
+            return True # All letters are correct!
+        else:
+            return False # Not 5 letters correct yet
 
 class Word():
     def __init__(self, info:tuple):
@@ -176,7 +189,7 @@ class WordleReader:
     @staticmethod
     def get_pixel_info(img, x, y):
         r, g, b = img.getpixel((x, y))
-
+        # print("Pixel color:", r, g, b)
         # if r == 120 and g == 124 and b == 126:
         #     return WordlePosition.NOTPRESENT
         if r == 181 and g == 159 and b == 59:
@@ -184,7 +197,7 @@ class WordleReader:
         elif r == 83 and g == 141 and b == 78:
             return WordlePosition.CORRECT
         else:
-            print("Unknown color:", r, g, b)
+            # print("Unknown color:", r, g, b)
             return WordlePosition.NOTPRESENT
 
     @classmethod
