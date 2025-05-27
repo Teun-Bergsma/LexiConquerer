@@ -115,7 +115,7 @@ def main():
 
         # Spelling Bee Game
         if game_type_arg == "1":
-            CHATGPTTOGGLE = True # Toggle to use the ChatGPT implementation or not.
+            CHATGPTTOGGLE = False # Toggle to use the ChatGPT implementation or not.
             # Start robot:
             send_gcode(ser, f"G0 Z-0.4")
             time.sleep(0.2)
