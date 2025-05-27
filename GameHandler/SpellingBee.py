@@ -18,6 +18,7 @@ class SpellingBee:
         return words
 
     def is_valid_word(self, word: str) -> bool:
+        # Check if word is valid based on the given letters.
         if len(word) < 4:
             return False
         if self.required_letter not in word:
@@ -27,4 +28,5 @@ class SpellingBee:
         return True
 
     def find_valid_words(self) -> List[str]:
+        # Find all valid words that can be formed with the given letters.
         return [word for word in self.words if self.is_valid_word(word)]  

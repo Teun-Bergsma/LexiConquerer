@@ -1,0 +1,5 @@
+pyserial
+pillow
+pure-python-adb
+openai
+keyboard

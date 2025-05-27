@@ -21,13 +21,13 @@ client = OpenAI(
 )
 
 # Set your serial port and baud rate here
-SERIAL_PORT = '/dev/tty.usbmodem14201'  # <-- Replace with your actual port!
+SERIAL_PORT = '/dev/tty.usbmodem14301'  # <-- Replace with your actual port!
 BAUD_RATE = 115200
 
 # Define GRBL max travel values (match your $130, $131, $132 settings)
 MAX_X = 110  # 395 mm PHYSICAL LIMIT 
 MAX_Y = 120  # 420 mm PHYSICAL LIMIT
-MAX_Z = 50   # mm
+MAX_Z = 50   
 
 # These are the used ranges that indicate the outer corner of the phone screen.
 Range_X = 50
@@ -45,8 +45,7 @@ def get_screen_tap_locations(gametype):
             ('letter5', 39, 23),
             ('letter6', 34, 23),
             ('letter7', 37, 19),
-            ('enter', 47, 14),
-            # ('back', 900, 200)
+            ('enter', 47, 14)
         ]
     # Wordle Game, return locations of the 26 letters, the enter and the back keys in a format of letter, x, y.
     # We dot not use the back key.
@@ -78,8 +77,7 @@ def get_screen_tap_locations(gametype):
             ('x', 52, 22.75),
             ('y', 44.75, 17.25),
             ('z', 52, 25),
-            ('enter', 52.5, 27.5),
-            ('back', 2800, 200)
+            ('enter', 52.5, 27.5)
         ]
     else:
         print("Invalid game type. Please choose 1 for Spelling Bee or 2 for Wordle.")
@@ -117,7 +115,7 @@ def main():
 
         # Spelling Bee Game
         if game_type_arg == "1":
-            CHATGPTTOGGLE = False # Toggle to use the ChatGPT implementation or not.
+            CHATGPTTOGGLE = True # Toggle to use the ChatGPT implementation or not.
             # Start robot:
             send_gcode(ser, f"G0 Z-0.4")
             time.sleep(0.2)

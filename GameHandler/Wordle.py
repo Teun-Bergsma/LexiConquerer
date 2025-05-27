@@ -1,4 +1,4 @@
-from PIL import Image #prob only works in venv
+from PIL import Image 
 import random
 
 from enum import Enum
@@ -121,18 +121,6 @@ class Wordle:
         if this_word_info == (WordlePosition.CORRECT, WordlePosition.CORRECT, WordlePosition.CORRECT, WordlePosition.CORRECT, WordlePosition.CORRECT):
             return True
         print(guess)
-        # for position, letter in enumerate(guess):
-        #     if this_word_info[position] == WordlePosition.CORRECT:
-        #         self.green_letters.update({position: letter})
-        #     elif this_word_info[position] == WordlePosition.WRONGPLACE:
-        #         if letter not in self.yellow_letters:
-        #             self.yellow_letters[letter] = set()
-        #         self.yellow_letters[letter].add(position)
-        #     elif this_word_info[position] == WordlePosition.NOTPRESENT:
-        #         print("Letter not present: ", letter, "with green letters: ", self.green_letters.values(), "and yellow letters: ", self.yellow_letters)
-        #         if (letter not in self.green_letters.values() and letter not in self.yellow_letters):
-        #             self.excluded_letters.add(letter)
-        # First pass: collect green and yellow info
         for position, letter in enumerate(guess):
             if this_word_info[position] == WordlePosition.CORRECT:
                 self.green_letters.update({position: letter})
@@ -182,26 +170,21 @@ class WordleReader:
     # Coords on the phone used
     x_coords: tuple = (85, 275, 465, 655, 845)
     y_coords: tuple = (400, 600, 800, 1000, 1200, 1400)
-    # Coords on testing phone
-    # x_coords: tuple = (50, 285, 525, 760, 1000)
-    # y_coords: tuple = (500, 800, 1100, 1300, 1500, 1700)
 
     @staticmethod
     def get_pixel_info(img, x, y):
         r, g, b = img.getpixel((x, y))
-        # print("Pixel color:", r, g, b)
-        # if r == 120 and g == 124 and b == 126:
-        #     return WordlePosition.NOTPRESENT
+        # Assign correct status of letters based on the gathered RGB values.
         if r == 181 and g == 159 and b == 59:
             return WordlePosition.WRONGPLACE
         elif r == 83 and g == 141 and b == 78:
             return WordlePosition.CORRECT
         else:
-            # print("Unknown color:", r, g, b)
             return WordlePosition.NOTPRESENT
 
     @classmethod
     def get_word_info(cls, img, word_int: int) -> Word:
+        # Get info about the current inputted word.
         y = cls.y_coords[word_int]
         word_info = [None, None, None, None, None]
 
@@ -213,6 +196,7 @@ class WordleReader:
 
     @classmethod
     def get_board_info(cls, screenshot):
+        # Get info about the current game board.
         phonereader.screenshot()
         img = Image.open("screen.png")
         img = img.convert("RGB")

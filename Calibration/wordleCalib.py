@@ -9,19 +9,19 @@ BAUD_RATE = 115200
 # Define GRBL max travel values (match your $130, $131, $132 settings)
 MAX_X = 110  # 395 mm PHYSICAL LIMIT 
 MAX_Y = 120  # 420 mm PHYSICAL LIMIT
-MAX_Z = 50   # mm
+MAX_Z = 50   
 
-# We use max ranges:
-# Range_X = 55
-# Range_Y = 30
-
+# These are the ranges that indicate the outer corner of the phone screen.
 Range_X = 50
 Range_Y = 30
 
+# These values are the starting point of the phone screen.
 Start_X = 10
 Start_Y = 9
 
+# This function is responsible for sending G-code commands to the GRBL controller.
 def send_gcode(ser, command):
+    # Since this is calibration code, we print the commands to the console for debugging.
     print(f"> {command}")
     ser.write((command + '\n').encode())
     time.sleep(0.1)
@@ -30,6 +30,7 @@ def send_gcode(ser, command):
         if response:
             print(response)
 
+# This function is responsible for getting the current position of the robot.
 def get_position_loop(ser, stop_flag):
     while not stop_flag.is_set():
         ser.write(b'?\n')
@@ -42,6 +43,7 @@ def get_position_loop(ser, stop_flag):
 
 def main():
     with serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1) as ser:
+        # First, setup the serial connection to the GRBL controller.
         time.sleep(2)
         ser.write(b"\r\n\r\n")  # Wake up GRBL
         time.sleep(2)
@@ -52,117 +54,63 @@ def main():
         thread.start()
 
         try:
-            send_gcode(ser, "G90")         # Absolute positioning
-            send_gcode(ser, "F1000")       # Feedrate (mm/min)
+            # Perform the calibration sequence.
+            send_gcode(ser, "G90")        
+            send_gcode(ser, "F1000")      
             send_gcode(ser, f"G0 Z-0.4")
             time.sleep(1)
 
-            # Go to middle letter.
+            # Go to letter 'q'.
             send_gcode(ser, f"G0 X44.75 Y28.25")
             time.sleep(10)
 
+            # Perform a tap.
             send_gcode(ser, f"G0 Z-0.05")
             time.sleep(0.7)
             send_gcode(ser, f"G0 Z-0.4")
             time.sleep(0.2)
 
+            # Go to letter 'g'.
             send_gcode(ser, f"G0 X48.5 Y18.25")
             time.sleep(3)
+
+            # Perform a tap.
             send_gcode(ser, f"G0 Z-0.05")
             time.sleep(0.7)
             send_gcode(ser, f"G0 Z-0.4")
             time.sleep(2)
 
+            # Go to letter 'm'.
             send_gcode(ser, f"G0 X52 Y12")
             time.sleep(3)
+
+            # Perform a tap.
             send_gcode(ser, f"G0 Z-0.05")
             time.sleep(0.7)
             send_gcode(ser, f"G0 Z-0.4")
             time.sleep(2)
 
+            # Go to the 'enter' key.
             send_gcode(ser, f"G0 X52.5 Y27.5")
             time.sleep(3)
+
+            # Perform a tap.
             send_gcode(ser, f"G0 Z-0.05")
             time.sleep(0.7)
             send_gcode(ser, f"G0 Z-0.4")
             time.sleep(2)
 
-            # send_gcode(ser, f"G0 X34 Y23")
-            # time.sleep(3)
-
-            # send_gcode(ser, f"G0 Z-0.05")
-            # time.sleep(0.7)
-            # send_gcode(ser, f"G0 Z-0.4")
-            # time.sleep(0.2)
-
-            # send_gcode(ser, f"G0 X37 Y19")
-            # time.sleep(3)
-            # send_gcode(ser, f"G0 Z-0.05")
-            # time.sleep(0.7)
-            # send_gcode(ser, f"G0 Z-0.4")
-            # time.sleep(2)
-
-            # send_gcode(ser, f"G0 X39 Y15")
-            # time.sleep(3)
-            # send_gcode(ser, f"G0 Z-0.05")
-            # time.sleep(0.7)
-            # send_gcode(ser, f"G0 Z-0.4")
-            # time.sleep(2)
-
-            # send_gcode(ser, f"G0 X47 Y14")
-            # time.sleep(3)
-            # send_gcode(ser, f"G0 Z-0.05")
-            # time.sleep(0.7)
-            # send_gcode(ser, f"G0 Z-0.4")
-            # time.sleep(2)
-
-
-            # send_gcode(ser, f"G0 X34 Y23")
-            # time.sleep(3)
-
-            # send_gcode(ser, f"G0 Z-0.05")
-            # time.sleep(0.7)
-            # send_gcode(ser, f"G0 Z-0.4")
-            # time.sleep(0.2)
-
-            # send_gcode(ser, f"G0 X37 Y19")
-            # time.sleep(3)
-            # send_gcode(ser, f"G0 Z-0.05")
-            # time.sleep(0.7)
-            # send_gcode(ser, f"G0 Z-0.4")
-            # time.sleep(2)
-
-            # send_gcode(ser, f"G0 X39 Y15")
-            # time.sleep(3)
-            # send_gcode(ser, f"G0 Z-0.05")
-            # time.sleep(0.7)
-            # send_gcode(ser, f"G0 Z-0.4")
-            # time.sleep(2)
-
-            # send_gcode(ser, f"G0 X47 Y14")
-            # time.sleep(3)
-            # send_gcode(ser, f"G0 Z-0.05")
-            # time.sleep(0.7)
-            # send_gcode(ser, f"G0 Z-0.4")
-            # time.sleep(2)
-
-
-
+            # Lift the pen.
             send_gcode(ser, f"G0 Z-1")
             time.sleep(0.2)
 
+            # Move to the home position.
             send_gcode(ser, f"G0 X0 Y0")
             time.sleep(5)
 
+            # Move pen to start position.
             send_gcode(ser, f"G0 Z0")
             time.sleep(0.2)
-
-            # Then Y max (no homing, just move directly to max Y)
-            # send_gcode(ser, f"G0 Y{Range_Y}")
-            # time.sleep(10)
-            # send_gcode(ser, "Z0")
-            # time.sleep(3)
-            # Optionally: return to origin (no homing, just set positions)
 
         finally:
             stop_flag.set()
